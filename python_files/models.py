@@ -113,21 +113,24 @@ joblib.dump(gb, "model_gradient_boosting.pkl")
 # Implement a new way to safely share models (hint: check the library skops)
 #
 # skops permet de sauvegarder des modèles sklearn sans pickle, dans un format qui n'exécute pas de code arbitraire au chargement.
+
+# %%
+import skops.io as sio
+
+# Sauvegarder
+sio.dump(lr, "model_logistic_regression.skops")
+sio.dump(rf, "model_random_forest.skops")
+sio.dump(gb, "model_gradient_boosting.skops")
+
+# Charger (avec vérification explicite des types autorisés)
+trusted_types = sio.get_untrusted_types(file="model_random_forest.skops")
+print("Types à vérifier :", trusted_types)  
+
+model_rf_safe = sio.loads(
+    sio.dumps(rf),
+    trusted=trusted_types
+)
+
+# %% [markdown]
 #
-#
-# import skops.io as sio
-#
-# # Sauvegarder
-# sio.dump(lr, "model_logistic_regression.skops")
-# sio.dump(rf, "model_random_forest.skops")
-# sio.dump(gb, "model_gradient_boosting.skops")
-#
-# # Charger (avec vérification explicite des types autorisés)
-# trusted_types = sio.get_untrusted_types(file="model_random_forest.skops")
-# print("Types à vérifier :", trusted_types)  # tu inspectes avant d'accepter
-#
-# model_rf_safe = sio.loads(
-#     sio.dumps(rf),
-#     trusted=trusted_types
-# )
 # La différence clé : skops te liste les types non-trusted avant de charger — si NumericalStabilizer avait du code malveillant, tu le verrais dans la liste et tu pourrais refuser. Avec joblib.load(), le code s'exécute directement sans avertissement.
